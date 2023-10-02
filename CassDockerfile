@@ -1,0 +1,11 @@
+# Use an official Cassandra image
+
+FROM cassandra:latest
+
+# Expose Cassandra port
+
+EXPOSE 9042
+
+# Copy your Cassandra initialization script (e.g., create keyspaces, tables) into the container
+
+COPY init-cassandra.cql /docker-entrypoint-initdb.d/

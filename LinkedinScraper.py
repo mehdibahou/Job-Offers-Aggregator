@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
-# TO DO VERIFY THE DATE AND THE END CONDITION
 
 
 def LinkedInScraper():

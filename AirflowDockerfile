@@ -1,0 +1,12 @@
+# Use an official Apache Airflow image
+FROM apache/airflow:2.7.1  # Use the specific Airflow version
+
+# Additional configurations or installations, if needed
+# ...
+
+# Set environment variables to configure Airflow to use SQLite
+ENV AIRFLOW__CORE__SQL_ALCHEMY_CONN=sqlite:////usr/local/airflow/airflow.db
+ENV AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+
+# Copy your Airflow DAGs into the container
+COPY dags /usr/local/airflow/dags/

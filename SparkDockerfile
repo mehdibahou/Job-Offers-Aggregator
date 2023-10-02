@@ -1,0 +1,15 @@
+# Use a base image with PySpark and Hadoop
+
+FROM jupyter/pyspark-notebook:latest
+
+# Copy your PySpark application code into the container
+
+COPY SparkTransformations.py /home/jovyan/work/
+
+# Set the working directory
+
+WORKDIR /home/jovyan/work/
+
+# Define the command to run the PySpark application
+
+CMD ["spark-submit", "SparkTransformations.py"]
