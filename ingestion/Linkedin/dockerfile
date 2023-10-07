@@ -6,10 +6,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN pip install --upgrade pip
-RUN pip install selenium 
-RUN pip install boto3 
-RUN pip install pandas 
+RUN pip install selenium boto3 pandas pymongo
 
 
 

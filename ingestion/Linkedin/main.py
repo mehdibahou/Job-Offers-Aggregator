@@ -1,36 +1,40 @@
 import os
 import time
+import pandas as pd
+import pymongo
+from io import StringIO
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import pandas as pd
-import boto3
-import os
-from io import StringIO
 
-
+# Sleep for a few seconds to ensure the Selenium standalone server is ready
 time.sleep(5)
-options = webdriver.ChromeOptions()
 
+# Set up Selenium ChromeOptions
+options = webdriver.ChromeOptions()
 options.add_argument("--headless")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 
-
+# Initialize the WebDriver with the Selenium standalone server
 driver = webdriver.Remote(
     command_executor='http://selenium:4444/wd/hub',
-    options=options)
+    options=options
+)
+
+# Navigate to LinkedIn and log in
 driver.get("https://www.linkedin.com/login/")
 driver.maximize_window()
 username = "snium008@gmail.com"
 password = "Ma123456789@A"
 username_field = driver.find_element(By.ID, "username")
-print(username_field)
 username_field.send_keys(username)
 password_field = driver.find_element(By.ID, "password")
 password_field.send_keys(password)
 password_field.submit()
+
+# Navigate to the LinkedIn jobs page
 driver.get("https://www.linkedin.com/jobs/")
 search_field = driver.find_element(
     By.CSS_SELECTOR, ".jobs-search-box__text-input.jobs-search-box__keyboard-text-input")
@@ -39,6 +43,8 @@ search_field.send_keys("data")
 time.sleep(3)
 search_field.send_keys(Keys.RETURN)
 time.sleep(3)
+
+# Filter jobs by duration (e.g., "Last 30 days")
 duration_field = driver.find_element(
     By.ID, "searchFilter_timePostedRange")
 duration_field.click()
@@ -51,32 +57,31 @@ duration_field = driver.find_element(
     By.XPATH, "/html/body/div[5]/div[3]/div[4]/section/div/section/div/div/div/ul/li[3]/div/div/div/div[1]/div/form/fieldset/div[2]/button[2]")
 duration_field.click()
 time.sleep(3)
-pagination = driver.find_element(
-    By.XPATH, "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/div[7]/ul")
-pages = pagination.find_elements(By.TAG_NAME, "li")
-time.sleep(3)
-driver.execute_script("arguments[0].scrollIntoView(true);", pagination)
-page = driver.find_element(
-    By.XPATH, "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul")
-print(page)
-time.sleep(3)
+
+# Initialize data list
 Data = []
+
+# Define a flag to stop scraping when all pages are processed
 stop = False
 current_page = 0
+
+# Scraping loop
 while not stop:
     try:
+        # Scroll to the bottom of the page to load more job listings
         driver.execute_script(
             "arguments[0].scrollIntoView(true);", pagination)
+
+        # Extract job listings
         Jobtitles = driver.find_elements(
             By.CSS_SELECTOR, ".full-width.artdeco-entity-lockup__title.ember-view")
         Companies = driver.find_elements(
             By.CSS_SELECTOR, ".job-card-container__primary-description")
         Regions = driver.find_elements(
             By.CSS_SELECTOR, ".job-card-container__metadata-item")
-        PublichDurations = driver.find_elements(By.TAG_NAME, "time")
-        print(Jobtitles)
-        print(
-            "/#-----------------------------------------------------------------#/")
+        PublishDurations = driver.find_elements(By.TAG_NAME, "time")
+
+        # Iterate through job listings and extract information
         for i in range(len(Jobtitles)):
             Jobtitles[i].click()
             time.sleep(1)
@@ -101,7 +106,8 @@ while not stop:
                 "Mode": mode,
                 "PublishDuration": date,
             }]
-        time.sleep(3)
+
+        # Scroll to the next page or stop if all pages are processed
         pagination = driver.find_element(
             By.CSS_SELECTOR, ".artdeco-pagination__pages.artdeco-pagination__pages--number")
         pages = pagination.find_elements(By.TAG_NAME, "li")
@@ -113,17 +119,27 @@ while not stop:
     except Exception as e:
         stop = True
         print(e)
+
+# Create a DataFrame from the extracted data
 df = pd.DataFrame(Data)
+
+# Quit the driver
 driver.quit()
-AWS_ACCESS_KEY_ID = 'AKIAYBL4RI3YLV4UXCHM'
-AWS_SECRET_ACCESS_KEY = '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'
 
-s3 = boto3.client('s3',
-                  aws_access_key_id=AWS_ACCESS_KEY_ID,
-                  aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+# Initialize a MongoDB client
+mongo_client = pymongo.MongoClient("mongodb://your_mongodb_uri")
 
-bucket_name = 'map-opp-data'
-csv_buffer = StringIO()
-df.to_csv(csv_buffer, index=False)
-object_key = 'data.csv'
-s3.put_object(Bucket=bucket_name, Key=object_key, Body=csv_buffer.getvalue())
+# Connect to the MongoDB database
+db = mongo_client["your_database_name"]
+
+# Define the collection where you want to insert the data
+collection = db["your_collection_name"]
+
+# Convert the data to a list of dictionaries
+data_list = df.to_dict("records")
+
+# Insert the data into the MongoDB collection
+collection.insert_many(data_list)
+
+# Close the MongoDB client connection
+mongo_client.close()

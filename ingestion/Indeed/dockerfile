@@ -7,6 +7,6 @@ WORKDIR /app
 COPY . /app
 
 
-RUN pip install selenium boto3 pandas 
+RUN pip install selenium boto3 pandas pymongo
 
 CMD ["python", "main.py"]
