@@ -1,0 +1,16 @@
+FROM python:3.9
+
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /app
+
+COPY . /app
+
+RUN pip install --upgrade pip
+RUN pip install selenium 
+RUN pip install boto3 
+RUN pip install pandas 
+
+
+
+CMD ["python", "main.py"]

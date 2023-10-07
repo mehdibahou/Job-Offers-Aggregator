@@ -246,32 +246,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-  selenium-source1:
-    build:
-      context: .
-      dockerfile: LDockerfile
-    depends_on:
-      - mongodb
-    networks:
-      - my-network
+  
 
-  selenium-source2:
-    build:
-      context: .
-      dockerfile: GDockerfile
-    depends_on:
-      - mongodb
-    networks:
-      - my-network
-
-  selenium-source3:
-    build:
-      context: .
-      dockerfile: IDockerfile
-    depends_on:
-      - mongodb
-    networks:
-      - my-network
 
   spark-job:
     build:

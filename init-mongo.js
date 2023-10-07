@@ -18,9 +18,3 @@ db = newDb;
 
 // Create collections and perform other setup as needed
 db.createCollection("mycollection");
-
-// Insert sample data
-db.mycollection.insert([
-  { name: "John", age: 30 },
-  { name: "Jane", age: 25 },
-]);
